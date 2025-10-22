@@ -33,7 +33,7 @@ app.post("/ignite/:id", (req, res) => {
   res.json(idea);
 });
 
-// Add a comment to an idea
+// Add a comment
 app.post("/ideas/:id/comments", (req, res) => {
   const id = parseInt(req.params.id);
   const { text } = req.body;

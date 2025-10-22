@@ -40,16 +40,21 @@
       const data = await res.json();
       const container = document.getElementById("ideas");
       container.innerHTML = "";
+
       data.forEach((idea) => {
         const div = document.createElement("div");
-        div.className = "bg-white shadow-lg rounded-2xl p-5 cursor-pointer hover:shadow-2xl transition";
-        div.onclick = () => openModal(idea);
+        div.className = "bg-white shadow-lg rounded-2xl p-5 hover:shadow-2xl transition";
         div.innerHTML = `
           <h2 class="text-2xl font-semibold mb-2">${idea.title}</h2>
           <p class="text-gray-600 mb-3">${idea.desc}</p>
-          <button onclick="event.stopPropagation(); ignite(${idea.id})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded">
-            Ignite 🔥 (${idea.ignites})
-          </button>
+          <div class="flex gap-2">
+            <button onclick="ignite(${idea.id})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded">
+              Ignite 🔥 (${idea.ignites})
+            </button>
+            <button onclick="openModal(${idea.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+              💬 Comments (${idea.comments.length})
+            </button>
+          </div>
         `;
         container.appendChild(div);
       });
@@ -70,18 +75,25 @@
     }
 
     async function ignite(id) {
-      const res = await fetch(`/ignite/${id}`, { method: "POST" });
-      if (res.ok) loadIdeas();
+      await fetch(`/ignite/${id}`, { method: "POST" });
+      loadIdeas();
     }
 
-    function openModal(idea) {
+    async function openModal(id) {
+      const res = await fetch("/ideas");
+      const data = await res.json();
+      const idea = data.find(i => i.id === id);
+      if (!idea) return;
       selectedIdeaId = idea.id;
+
       document.getElementById("modalTitle").textContent = idea.title;
       document.getElementById("modalDesc").textContent = idea.desc;
+
       const commentsList = document.getElementById("commentsList");
       commentsList.innerHTML = idea.comments.length
         ? idea.comments.map(c => `<p class='border-b pb-1'><b>💬</b> ${c.text} <span class='text-gray-400 text-sm'>(${c.time})</span></p>`).join("")
         : "<p class='text-gray-400'>No comments yet.</p>";
+
       document.getElementById("commentModal").classList.remove("hidden");
     }
 
