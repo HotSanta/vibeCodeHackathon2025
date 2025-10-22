@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ignite Ideas 🔥</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col items-center min-h-screen p-6">
+  <h1 class="text-4xl font-bold mb-6 text-orange-500">Ignite Ideas 🔥</h1>
+
+  <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-md">
+    <input id="title" type="text" placeholder="Idea title" class="border p-2 w-full rounded mb-3" />
+    <textarea id="desc" placeholder="Describe your idea..." class="border p-2 w-full rounded mb-3"></textarea>
+    <button onclick="addIdea()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded w-full">Add Idea 💡</button>
+  </div>
+
+  <div id="ideas" class="w-full max-w-2xl mt-8 space-y-4"></div>
+
+  <script>
+    async function loadIdeas() {
+      const res = await fetch("/ideas");
+      const data = await res.json();
+      const container = document.getElementById("ideas");
+      container.innerHTML = "";
+      data.forEach((idea) => {
+        const div = document.createElement("div");
+        div.className = "bg-white shadow-lg rounded-2xl p-5";
+        div.innerHTML = `
+          <h2 class="text-2xl font-semibold mb-2">${idea.title}</h2>
+          <p class="text-gray-600 mb-3">${idea.desc}</p>
+          <button onclick="ignite(${idea.id})" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded">
+            Ignite 🔥 (${idea.ignites})
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function addIdea() {
+      const title = document.getElementById("title").value.trim();
+      const desc = document.getElementById("desc").value.trim();
+      if (!title || !desc) return alert("Please fill out both fields.");
+      await fetch("/ideas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, desc }),
+      });
+      document.getElementById("title").value = "";
+      document.getElementById("desc").value = "";
+      loadIdeas();
+    }
+
+    async function ignite(id) {
+      const res = await fetch(`/ignite/${id}`, { method: "POST" });
+      if (res.ok) loadIdeas();
+    }
+
+    loadIdeas();
+  </script>
+</body>
+</html>
